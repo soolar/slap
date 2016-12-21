@@ -39,7 +39,7 @@ focuses on making it as quick as possible (in terms of time, not turns), while
 still making use of a wide variety of items and skills.
 
 ## Installation
-Simply run `svn checkout https://github.com/soolar/slap/release/` in
+Simply run `svn checkout https://github.com/soolar/slap/branches/release/` in
 KoLMafia's gCLI. Then switch your ccs to SLAP.ccs, or add `consult
 scripts/SLAP.ash` to your CCS.
 
