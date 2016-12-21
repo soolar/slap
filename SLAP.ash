@@ -1,4 +1,4 @@
-script "Soolar's Lag Annihilating Pummeler";
+script "Soolar's Lag-Annihilating Pummeler";
 notify "soolar the second";
 import <zlib.ash>
 
@@ -41,10 +41,10 @@ static
   boolean [skill] staggerSkills = $skills[
     Fire the Jokester's Gun,
     summon love mosquito,
+    Compress,
     air dirty laundry,
     Ply Reality,
     Cowboy Kick,
-    Compress,
   ];
 
   boolean [item] stasisItems = $items[
@@ -91,6 +91,20 @@ static
   monsterItems[$monster[thinker of thoughts]] = $item[abstraction: action];
 }
 
+string Intify(item it)
+{
+  if(vars["verbosity"].to_int() < 6)
+    return it.to_int();
+  return it;
+}
+
+string Intify(skill s)
+{
+  if(vars["verbosity"].to_int() < 6)
+    return s.to_int();
+  return s;
+}
+
 string GetMacro(int initround, monster foe, string page)
 {
   // helper functions and stuff
@@ -103,7 +117,7 @@ string GetMacro(int initround, monster foe, string page)
   void cast(skill s)
   {
     mpSpent += mp_cost(s);
-    AddAction("skill " + s); //.to_int());
+    AddAction("skill " + Intify(s));
   }
   boolean tryCast(skill s)
   {
@@ -144,9 +158,9 @@ string GetMacro(int initround, monster foe, string page)
   {
     if(item_amount(it) > 0 && be_good(it))
     {
-      string act = "use " + it; //.to_int();
+      string act = "use " + Intify(it);
       if(funk != $item[none])
-        act += "," + funk; //.to_int();
+        act += "," + Intify(funk);
       itemsUsed[funk] = true;
       AddAction(act);
       return true;
@@ -277,8 +291,8 @@ string GetMacro(int initround, monster foe, string page)
 void main(int initround, monster foe, string page)
 {
   string macro = GetMacro(initround, foe, page);
-  print(macro);
+  vprint("Macro about to be executed: " + macro, "blue", 7);
   visit_url("fight.php?action=macro&macrotext=" + url_encode(macro), true, true);
-  print(macro);
+  vprint("Macro just executed: " + macro, "blue", 6);
 }
 
