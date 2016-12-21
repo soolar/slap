@@ -40,7 +40,8 @@ still making use of a wide variety of items and skills.
 
 ## Installation
 Simply run `svn checkout https://github.com/soolar/slap/release/` in
-KoLMafia's gCLI.
+KoLMafia's gCLI. Then switch your ccs to SLAP.ccs, or add `consult
+scripts/SLAP.ash` to your CCS.
 
 ## Quest progress this consult script will make
 ### Olfaction
