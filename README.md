@@ -98,6 +98,7 @@ the first available infinite use funkslingable, if available.
 * Blue raspberry troll doll
 * Cinnamon troll doll
 * Grape troll doll
+
 #### Infinite use funkslingables
 * tin snips
 * Miniborg Destroy-O-Bot
