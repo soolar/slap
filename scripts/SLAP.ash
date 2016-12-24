@@ -218,47 +218,8 @@ int TryUseItem(SLAPState slap, boolean [item] items)
   return slap.TryUseItem(items, -1);
 }
 
-string GetMacro(int initround, monster foe, string page)
+void HandleUniqueMonsters(SLAPState slap, monster foe)
 {
-  SLAPState slap;
-
-  // Actual stuff to do
-  slap.AddAction("scrollwhendone");
-  slap.AddAction("abort missed 5");
-  slap.AddAction("abort hppercentbelow 25");
-  slap.AddAction("abort pastround 25");
-
-  // gremlins
-  string noMolyIdentifier = gremlins[my_location(), foe.manuel_name];
-  if(noMolyIdentifier != "")
-  {
-    if(item_amount($item[molybdenum magnet]) == 0)
-      slap.AddAction('abort "You forgot to get the magnet you doofus"');
-    slap.AddAction('if !match " whips out a"');
-    slap.TryUseItem($items[rock band flyers, jam band flyers]);
-    slap.AddAction("endif");
-    slap.AddAction('while !(match " whips out a " || match "' + noMolyIdentifier + '")');
-    if(slap.TryUseItem(stasisItems, $item[none], 1) == stasisItems.count())
-      slap.AddAction('abort "you don\'t have anything to stasis with you goon, go get a seal tooth or something"');
-    slap.AddAction("endwhile");
-    slap.AddAction('if match " whips out a "');
-    slap.TryUseItem($item[molybdenum magnet]);
-    slap.AddAction("endif");
-  }
-
-  slap.AddAction("pickpocket");
-  boolean stunSuccess;
-  foreach s in stunOptions
-  {
-    stunSuccess = slap.TryCast(s);
-    if(stunSuccess)
-      break;
-  }
-  if(!stunSuccess)
-    slap.TryCast(stun_skill());
-  if(toSniff[foe] && have_effect($effect[On the Trail]) < 1)
-    slap.TryCast($skill[Transcendent Olfaction]);
-  slap.TryUseItem(monsterItems[foe]);
   switch(foe)
   {
     case $monster[Source Agent]:
@@ -280,6 +241,42 @@ string GetMacro(int initround, monster foe, string page)
       break;
     }
   }
+  // gremlins
+  string noMolyIdentifier = gremlins[my_location(), foe.manuel_name];
+  if(noMolyIdentifier != "")
+  {
+    if(item_amount($item[molybdenum magnet]) == 0)
+      slap.AddAction('abort "You forgot to get the magnet you doofus"');
+    slap.AddAction('if !match " whips out a"');
+    slap.TryUseItem($items[rock band flyers, jam band flyers]);
+    slap.AddAction("endif");
+    slap.AddAction('while !(match " whips out a " || match "' + noMolyIdentifier + '")');
+    if(slap.TryUseItem(stasisItems, $item[none], 1) == stasisItems.count())
+      slap.AddAction('abort "you don\'t have anything to stasis with you goon, go get a seal tooth or something"');
+    slap.AddAction("endwhile");
+    slap.AddAction('if match " whips out a "');
+    slap.TryUseItem($item[molybdenum magnet]);
+    slap.AddAction("endif");
+  }
+}
+
+boolean TryStun(SLAPState slap)
+{
+  boolean stunSuccess;
+  foreach s in stunOptions
+  {
+    stunSuccess = slap.TryCast(s);
+    if(stunSuccess)
+      break;
+  }
+  if(!stunSuccess)
+    stunSuccess = slap.TryCast(stun_skill());
+
+  return stunSuccess;
+}
+
+void HandleLocation(SLAPState slap, monster foe)
+{
   switch(my_location())
   {
     case $location[Barrrney's Barrr]:
@@ -292,21 +289,40 @@ string GetMacro(int initround, monster foe, string page)
       if(get_property("_glarkCableUses").to_int() < 5 &&
           foe != $monster[Ron "The Weasel" Copperhead])
         slap.TryUseItem($item[glark cable]);
+      break;
   }
-  if(foe.sub_types["ghost"])
-    slap.TryCast($skills[Shoot Ghost, Shoot Ghost, Shoot Ghost, Trap Ghost]);
   if(my_location().environment == "underwater")
   {
     slap.TryUseItem($item[pulled red taffy]);
     if(get_property("lassoTraining") != "expertly")
       slap.TryUseItem($item[sea lasso]);
   }
+}
+
+string GetMacro(int initround, monster foe, string page)
+{
+  SLAPState slap;
+
+  slap.AddAction("scrollwhendone");
+  slap.AddAction("abort missed 5");
+  slap.AddAction("abort hppercentbelow 25");
+  slap.AddAction("abort pastround 25");
+
+  slap.HandleUniqueMonsters(foe);
+
+  slap.AddAction("pickpocket");
+  slap.TryStun();
+  if(toSniff[foe] && have_effect($effect[On the Trail]) < 1)
+    slap.TryCast($skill[Transcendent Olfaction]);
+  slap.TryUseItem(monsterItems[foe]);
+  
+  slap.HandleLocation(foe);
+  if(foe.sub_types["ghost"])
+    slap.TryCast($skills[Shoot Ghost, Shoot Ghost, Shoot Ghost, Trap Ghost]);
 
   slap.TryCast(profitableSkills);
   slap.TryUseItem(reusableStaggerItems);
   slap.TryCast(staggerSkills);
-
-
 
   slap.TryCast($skill[stuffed mortar shell]);
   slap.AddAction("attack");
