@@ -65,6 +65,11 @@ static
     grizzled survivor, unhinged survivor, whiny survivor,
   ];
 
+  boolean [skill] banishSkills = $skills[
+    Batter Up!,
+    pocket crumbs,
+    snokebomb,
+  ];
   boolean [monster] toBanish = $monsters[
     slick lihc,
     senile lihc,
@@ -105,187 +110,208 @@ string Intify(skill s)
   return s;
 }
 
-string GetMacro(int initround, monster foe, string page)
+record SLAPState
 {
-  // helper functions and stuff
   string [int] actions;
-  void AddAction(string action)
-  {
-    actions[actions.count()] = action;
-  }
   int mpSpent;
-  void cast(skill s)
-  {
-    mpSpent += mp_cost(s);
-    AddAction("skill " + Intify(s));
-  }
-  boolean tryCast(skill s)
-  {
-    if(have_skill(s) && be_good(s) && (mp_cost(s) <= (my_mp() - mpSpent)))
-    {
-      cast(s);
-      return true;
-    }
-    return false;
-  }
-  int tryCast(boolean [skill] skills)
-  {
-    int fails;
-    foreach s in skills
-    {
-      boolean success = tryCast(s);
-      if(!success)
-        ++fails;
-    }
-    return fails;
-  }
   boolean [item] itemsUsed;
-  item getFunkslingable()
+};
+
+void AddAction(SLAPState slap, string action)
+{
+  slap.actions[slap.actions.count()] = action;
+}
+
+void Cast(SLAPState slap, skill s)
+{
+  slap.mpSpent += mp_cost(s);
+  slap.AddAction("skill " + Intify(s));
+}
+
+boolean TryCast(SLAPState slap, skill s)
+{
+  if(have_skill(s) && be_good(s) && (mp_cost(s) <= (my_mp() - slap.mpSpent)))
   {
-    foreach it in oncePerCombatNonStaggerItems
-    {
-      if(item_amount(it) > 0 && be_good(it) && !itemsUsed[it])
-        return it;
-    }
-    foreach it in fullyReusableNonStaggerItems
-    {
-      if(item_amount(it) > 0 && be_good(it))
-        return it;
-    }
-    return $item[none];
+    slap.Cast(s);
+    return true;
   }
-  boolean tryUseItem(item it, item funk)
+  return false;
+}
+
+int TryCast(SLAPState slap, boolean [skill] skills)
+{
+  int fails;
+  foreach s in skills
+  {
+    boolean success = slap.TryCast(s);
+    if(!success)
+      ++fails;
+  }
+  return fails;
+}
+
+item GetFunkslingable(SLAPState slap)
+{
+  foreach it in oncePerCombatNonStaggerItems
+  {
+    if(item_amount(it) > 0 && be_good(it) && !slap.itemsUsed[it])
+      return it;
+  }
+  foreach it in fullyReusableNonStaggerItems
   {
     if(item_amount(it) > 0 && be_good(it))
-    {
-      string act = "use " + Intify(it);
-      if(funk != $item[none])
-        act += "," + Intify(funk);
-      itemsUsed[funk] = true;
-      AddAction(act);
-      return true;
-    }
-    return false;
+      return it;
   }
-  boolean tryUseItem(item it)
+  return $item[none];
+}
+
+boolean TryUseItem(SLAPState slap, item it, item funk)
+{
+  if(item_amount(it) > 0 && be_good(it))
   {
-    return tryUseItem(it, getFunkslingable());
+    string act = "use " + Intify(it);
+    slap.itemsUsed[it] = true;
+    if(funk != $item[none])
+      act += "," + Intify(funk);
+    slap.itemsUsed[funk] = true;
+    slap.AddAction(act);
+    return true;
   }
-  int tryUseItem(boolean [item] items, item funk, int limit)
+  return false;
+}
+
+boolean TryUseItem(SLAPState slap, item it)
+{
+  return slap.TryUseItem(it, slap.GetFunkslingable());
+}
+
+int TryUseItem(SLAPState slap, boolean [item] items, item funk, int limit)
+{
+  int fails = 0;
+  foreach it in items
   {
-    int fails = 0;
-    foreach it in items
-    {
-      boolean success = tryUseItem(it, funk);
-      if(!success)
-        ++fails;
-      else if(--limit == 0)
-        break;
-    }
-    return fails;
+    boolean success = slap.TryUseItem(it, funk);
+    if(!success)
+      ++fails;
+    else if(--limit == 0)
+      break;
   }
-  int tryUseItem(boolean [item] items, int limit)
+  return fails;
+}
+
+int TryUseItem(SLAPState slap, boolean [item] items, int limit)
+{
+  int fails = 0;
+  foreach it in items
   {
-    int fails = 0;
-    foreach it in items
-    {
-      boolean success = tryUseItem(it);
-      if(!success)
-        ++fails;
-      else if(--limit == 0)
-        break;
-    }
-    return fails;
+    boolean success = slap.TryUseItem(it);
+    if(!success)
+      ++fails;
+    else if(--limit == 0)
+      break;
   }
-  int tryUseItem(boolean [item] items)
-  {
-    return tryUseItem(items, -1);
-  }
+  return fails;
+}
+
+int TryUseItem(SLAPState slap, boolean [item] items)
+{
+  return slap.TryUseItem(items, -1);
+}
+
+string GetMacro(int initround, monster foe, string page)
+{
+  SLAPState slap;
 
   // Actual stuff to do
-  AddAction("scrollwhendone");
-  AddAction("abort missed 5");
-  AddAction("abort hppercentbelow 25");
-  AddAction("abort pastround 25");
+  slap.AddAction("scrollwhendone");
+  slap.AddAction("abort missed 5");
+  slap.AddAction("abort hppercentbelow 25");
+  slap.AddAction("abort pastround 25");
 
   // gremlins
   string noMolyIdentifier = gremlins[my_location(), foe.manuel_name];
   if(noMolyIdentifier != "")
   {
-    //if(item_amount($item[molybdenum magnet]) == 0)
-    //  AddAction('abort "You forgot to get the magnet you doofus"');
-    AddAction('if !match " whips out a"');
-    tryUseItem($items[rock band flyers, jam band flyers]);
-    AddAction("endif");
-    AddAction('while !(match " whips out a " || match "' + noMolyIdentifier + '")');
-    if(tryUseItem(stasisItems, $item[none], 1) == stasisItems.count())
-      AddAction('abort "you don\'t have anything to stasis with you goon, go get a seal tooth or something"');
-    AddAction("endwhile");
-    AddAction('if match " whips out a "');
-    tryUseItem($item[molybdenum magnet]);
-    AddAction("endif");
+    if(item_amount($item[molybdenum magnet]) == 0)
+      slap.AddAction('abort "You forgot to get the magnet you doofus"');
+    slap.AddAction('if !match " whips out a"');
+    slap.TryUseItem($items[rock band flyers, jam band flyers]);
+    slap.AddAction("endif");
+    slap.AddAction('while !(match " whips out a " || match "' + noMolyIdentifier + '")');
+    if(slap.TryUseItem(stasisItems, $item[none], 1) == stasisItems.count())
+      slap.AddAction('abort "you don\'t have anything to stasis with you goon, go get a seal tooth or something"');
+    slap.AddAction("endwhile");
+    slap.AddAction('if match " whips out a "');
+    slap.TryUseItem($item[molybdenum magnet]);
+    slap.AddAction("endif");
   }
 
-  AddAction("pickpocket");
+  slap.AddAction("pickpocket");
   boolean stunSuccess;
   foreach s in stunOptions
   {
-    stunSuccess = tryCast(s);
+    stunSuccess = slap.TryCast(s);
     if(stunSuccess)
       break;
   }
   if(!stunSuccess)
-    tryCast(stun_skill());
+    slap.TryCast(stun_skill());
   if(toSniff[foe] && have_effect($effect[On the Trail]) < 1)
-    tryCast($skill[Transcendent Olfaction]);
-  tryUseItem(monsterItems[foe]);
+    slap.TryCast($skill[Transcendent Olfaction]);
+  slap.TryUseItem(monsterItems[foe]);
   switch(foe)
   {
     case $monster[Source Agent]:
     {
-      int fails = tryCast($skills[humiliating hack, disarmament, reboot]);
+      int fails = slap.TryCast($skills[humiliating hack, disarmament, reboot]);
       if(fails > 0)
       {
-        actions.clear();
-        AddAction('abort "You don\'t have the proper skills and/or enough mp to safely automate fighting an agent"');
+        slap.actions.clear();
+        slap.AddAction('abort "You don\'t have the proper skills and/or enough mp to safely automate fighting an agent"');
       }
-      tryCast($skill[compress]);
-      AddAction('while hasskill source kick;if hppercentbelow 35 && hasskill restor && !mpbelow 125;skill restore;endif;skill source kick;endwhile;abort "You\'re hosed."');
+      slap.TryCast($skill[compress]);
+      slap.AddAction('while hasskill source kick');
+      slap.AddAction('if hppercentbelow 35 && hasskill restore && !mpbelow 125');
+      slap.AddAction('skill restore');
+      slap.AddAction('endif');
+      slap.AddAction('skill source kick');
+      slap.AddAction('endwhile');
+      slap.AddAction('abort "You\'re hosed."');
       break;
     }
   }
   switch(my_location())
   {
     case $location[Barrrney's Barrr]:
-      tryUseItem($item[The Big Book of Pirate Insults]);
+      slap.TryUseItem($item[The Big Book of Pirate Insults]);
       break;
     case $location[A Mob of Zeppelin Protesters]:
-      tryUseItem($item[cigarette lighter]);
+      slap.TryUseItem($item[cigarette lighter]);
       break;
     case $location[The Red Zeppelin]:
       if(get_property("_glarkCableUses").to_int() < 5 &&
           foe != $monster[Ron "The Weasel" Copperhead])
-        tryUseItem($item[glark cable]);
+        slap.TryUseItem($item[glark cable]);
   }
   if(foe.sub_types["ghost"])
-    tryCast($skills[Shoot Ghost, Shoot Ghost, Shoot Ghost, Trap Ghost]);
+    slap.TryCast($skills[Shoot Ghost, Shoot Ghost, Shoot Ghost, Trap Ghost]);
   if(my_location().environment == "underwater")
   {
-    tryUseItem($item[pulled red taffy]);
+    slap.TryUseItem($item[pulled red taffy]);
     if(get_property("lassoTraining") != "expertly")
-      tryUseItem($item[sea lasso]);
+      slap.TryUseItem($item[sea lasso]);
   }
 
-  tryCast(profitableSkills);
-  tryUseItem(reusableStaggerItems);
-  tryCast(staggerSkills);
+  slap.TryCast(profitableSkills);
+  slap.TryUseItem(reusableStaggerItems);
+  slap.TryCast(staggerSkills);
 
 
 
-  tryCast($skill[stuffed mortar shell]);
-  AddAction("attack");
-  AddAction("repeat");
-  return join(actions, ";");
+  slap.TryCast($skill[stuffed mortar shell]);
+  slap.AddAction("attack");
+  slap.AddAction("repeat");
+  return join(slap.actions, ";");
 }
 
 void main(int initround, monster foe, string page)
