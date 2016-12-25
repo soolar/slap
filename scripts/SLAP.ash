@@ -315,7 +315,8 @@ string GetMacro(int initround, monster foe, string page)
   slap.AddAction("pickpocket");
 
   if(get_property("_sourceTerminalDigitizeMonsterCount") >= vars["SLAP.Digitize.Frequency"].to_int()
-     && page.contains_text("Looks like you must have hit CTRL+V,"))
+     && page.contains_text("Looks like you must have hit CTRL+V,")
+     && qprop("questL13Final"))
   {
     vprint("DIGITIZING", 8);
     slap.TryCast($skill[Digitize]);
