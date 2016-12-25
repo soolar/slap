@@ -95,7 +95,6 @@ static
   monsterItems[$monster[performer of actions]] = $item[abstraction: sensation];
   monsterItems[$monster[thinker of thoughts]] = $item[abstraction: action];
 
-  setvar("SLAP.Digitize.Monster", $monster[none]);
   setvar("SLAP.Digitize.Frequency", 5);
 }
 
@@ -315,8 +314,7 @@ string GetMacro(int initround, monster foe, string page)
 
   slap.AddAction("pickpocket");
 
-  if(foe == vars["SLAP.Digitize.Monster"].to_monster() &&
-     get_property("_sourceTerminalDigitizeMonsterCount") >= vars["SLAP.Digitize.Frequency"].to_int()
+  if(get_property("_sourceTerminalDigitizeMonsterCount") >= vars["SLAP.Digitize.Frequency"].to_int()
      && page.contains_text("Looks like you must have hit CTRL+V,"))
   {
     vprint("DIGITIZING", 8);
