@@ -1,5 +1,5 @@
 script "Soolar's Lag-Annihilating Pummeler";
-notify "soolar the second";
+//notify "soolar the second";
 import <zlib.ash>
 
 static
