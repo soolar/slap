@@ -95,6 +95,13 @@ static
   monsterItems[$monster[performer of actions]] = $item[abstraction: sensation];
   monsterItems[$monster[thinker of thoughts]] = $item[abstraction: action];
 
+  // Almost all chefstaves have names that start with "Staff of "
+  // These don't.
+  boolean [item] irregularChefstaves = $items[
+    Spooky Putty snake,
+    The Necbromancer's Wizard Staff,
+  ];
+
   setvar("SLAP.Digitize.Frequency", 5);
 }
 
@@ -110,6 +117,12 @@ string Intify(skill s)
   if(vars["verbosity"].to_int() < 6)
     return s.to_int();
   return s;
+}
+
+boolean ChefstaffEquipped()
+{
+  item mainhand = equipped_item($slot[weapon]);
+  return IrregularChefstaves[mainhand] || (index_of(mainhand, "Staff of ") == 0);
 }
 
 record SLAPState
@@ -336,6 +349,12 @@ string GetMacro(int initround, monster foe, string page)
   slap.TryCast(staggerSkills);
 
   slap.TryCast($skill[stuffed mortar shell]);
+  // I know I could just always put that there, but I don't want to see the "you don't have a
+  // chefstaff equipped" message
+  if(ChefstaffEquipped())
+    slap.AddAction("jiggle");
+  if(foe.physical_resistance == 100)
+    slap.AddAction("while hasskill Saucegeyser;skill Saucegeyser;endwhile");
   slap.AddAction("attack");
   slap.AddAction("repeat");
   return join(slap.actions, ";");
