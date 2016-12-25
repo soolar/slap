@@ -94,6 +94,9 @@ static
   monsterItems[$monster[perceiver of sensations]] = $item[abstraction: thought];
   monsterItems[$monster[performer of actions]] = $item[abstraction: sensation];
   monsterItems[$monster[thinker of thoughts]] = $item[abstraction: action];
+
+  setvar("SLAP.Digitize.Monster", $monster[none]);
+  setvar("SLAP.Digitize.Frequency", 5);
 }
 
 string Intify(item it)
@@ -311,6 +314,15 @@ string GetMacro(int initround, monster foe, string page)
   slap.HandleUniqueMonsters(foe);
 
   slap.AddAction("pickpocket");
+
+  if(foe == vars["SLAP.Digitize.Monster"].to_monster() &&
+     get_property("_sourceTerminalDigitizeMonsterCount") >= vars["SLAP.Digitize.Frequency"].to_int()
+     && page.contains_text("Looks like you must have hit CTRL+V,"))
+  {
+    vprint("DIGITIZING", 8);
+    slap.TryCast($skill[Digitize]);
+  }
+
   slap.TryStun();
   if(toSniff[foe] && have_effect($effect[On the Trail]) < 1)
     slap.TryCast($skill[Transcendent Olfaction]);
