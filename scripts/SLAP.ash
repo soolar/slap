@@ -263,7 +263,10 @@ void HandleUniqueMonsters(SLAPState slap, monster foe)
     if(item_amount($item[molybdenum magnet]) == 0)
       slap.AddAction('abort "You forgot to get the magnet you doofus"');
     slap.AddAction('if !match " whips out a"');
-    slap.TryUseItem($items[rock band flyers, jam band flyers]);
+    slap.TryUseItem($item[rock band flyers]);
+    slap.AddAction("endif");
+    slap.AddAction('if !match " whips out a"');
+    slap.TryUseItem($item[jam band flyers]);
     slap.AddAction("endif");
     slap.AddAction('while !(match " whips out a " || match "' + noMolyIdentifier + '")');
     if(slap.TryUseItem(stasisItems, $item[none], 1) == stasisItems.count())
