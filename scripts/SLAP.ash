@@ -188,22 +188,49 @@ toSniff.AddEntries($monsters[
   grizzled survivor, unhinged survivor, whiny survivor,
 ], true);
 
-// TODO: add more banishing skills
+// TODO: Support Peel Out, Beancannon, and other equip-skill banishes
+// TODO: Possibly sort banishing skills in to tiers (til rollover vs finite turns)
+//       and only use long term banishes against high priority banish targets
+//       (targets where you will likely be in their zone for quite a while)
+//       Additionall, possibly set some banishes that should only be done with
+//       readily available banishes, like Batter Up! and path banishes
 skill [int] banishSkills;
+banishSkills.AddEntry($skill[Batter Up!]);
+if(have_effect($effect[Nanobrawny]) > 40)
+  banishSkills.AddEntry($skill[Unleash Nanites]);
 banishSkills.AddEntries($skills[
-  Batter Up!,
-  pocket crumbs,
-  snokebomb,
+  Creepy Grin,
+  Give Your Opponent the Stinkeye,
+  Talk About Politics,
+  Snokebomb,
+  Banishing Shout,
+  Howl of the Alpha,
+  Walk Away From Explosion,
+  Thunder Clap,
+  Curse of Vacation,
 ], true);
-// TODO: add more banishing items
+// TODO: classy monkey
 // TODO: sort banishing items in to tiers (free runaway, etc)
 //       and choose the cheapest inactive banisher in the first available tier
 item [int] banishItems;
+if(my_location().environment == "underwater")
+  banishItems.AddEntry($item[pulled indigo taffy]);
 banishItems.AddEntries($items[
   Louder Than Bomb,
   tennis ball,
+  divine champagne popper,
+  dirty stink bomb,
+  deathchucks,
+  smoke grenade,
+  crystal skull,
 ], true);
-
+// mafia names banishes from skills granted by familiars or items after the familiar or item, which
+// is p dumb imo, but whatever, this handles that
+string [string] banishNameFixes;
+banishNameFixes["pantsgiving"] = "Talk About Politics";
+banishNameFixes["nanorhino"] = "Unleash Nanites";
+// TODO: get namefixes for other equip banishes, since I'm not sure they're just item.to_string()
+//       some don't really matter though since they can only be used once a day anyway
 monster [int] toBanish;
 toBanish.AddEntries($monsters[
   slick lihc,
@@ -281,6 +308,8 @@ record SLAPState
   string [int] actions;
   int mpSpent;
   boolean [item] itemsUsed;
+  string page;
+  monster foe;
 };
 
 void AddAction(SLAPState slap, string action)
@@ -296,7 +325,9 @@ void Cast(SLAPState slap, skill s)
 
 boolean TryCast(SLAPState slap, skill s)
 {
-  if(have_skill(s) && be_good(s) && (mp_cost(s) <= (my_mp() - slap.mpSpent)))
+  //if(have_skill(s) && be_good(s) && (mp_cost(s) <= (my_mp() - slap.mpSpent)))
+  string img = s.image.substring(0, s.image.length() - 4); // cut off the .gif
+  if(slap.page.contains_text('<option value="' + s.to_int() + '" picurl="' + img + '" >' + s) && (mp_cost(s) <= (my_mp() - slap.mpSpent)))
   {
     slap.Cast(s);
     return true;
@@ -395,9 +426,9 @@ int TryUseItem(SLAPState slap, item [int] items)
   return slap.TryUseItem(items, -1);
 }
 
-void HandleUniqueMonsters(SLAPState slap, monster foe)
+void HandleUniqueMonsters(SLAPState slap)
 {
-  switch(foe)
+  switch(slap.foe)
   {
     case $monster[Source Agent]:
     {
@@ -421,7 +452,7 @@ void HandleUniqueMonsters(SLAPState slap, monster foe)
     }
   }
   // gremlins
-  string noMolyIdentifier = gremlins[my_location(), foe.manuel_name];
+  string noMolyIdentifier = gremlins[my_location(), slap.foe.manuel_name];
   if(noMolyIdentifier != "")
   {
     if(item_amount($item[molybdenum magnet]) == 0)
@@ -457,7 +488,7 @@ boolean TryStun(SLAPState slap)
   return stunSuccess;
 }
 
-void HandleLocation(SLAPState slap, monster foe)
+void HandleLocation(SLAPState slap)
 {
   switch(my_location())
   {
@@ -469,7 +500,7 @@ void HandleLocation(SLAPState slap, monster foe)
       break;
     case $location[The Red Zeppelin]:
       if(get_property("_glarkCableUses").to_int() < 5 &&
-          foe != $monster[Ron "The Weasel" Copperhead])
+          slap.foe != $monster[Ron "The Weasel" Copperhead])
         slap.TryUseItem($item[glark cable]);
       break;
   }
@@ -481,16 +512,63 @@ void HandleLocation(SLAPState slap, monster foe)
   }
 }
 
+boolean TryBanish(SLAPState slap)
+{
+  monster [skill] activeSkillBanishes;
+  monster [item] activeItemBanishes;
+
+  string [int] banishData = get_property("banishedMonsters").split_string(":");
+  for(int i = 0; i < banishData.count(); i += 3)
+  {
+    monster banished = to_monster(banishData[i]);
+    string banisher = banishData[i + 1];
+    if(banishNameFixes contains banisher)
+      banisher = banishNameFixes[banisher];
+
+    skill sk = banisher.to_skill();
+    if(sk != $skill[none])
+      activeSkillBanishes[sk] = banished;
+
+    item it = banisher.to_item();
+    if(it != $item[none])
+      activeItemBanishes[it] = banished;
+  }
+
+  foreach i,sk in banishSkills
+  {
+    if(!(activeSkillBanishes contains sk))
+    {
+      boolean success = slap.TryCast(sk);
+      if(success)
+        return true;
+    }
+  }
+
+  foreach i,it in banishItems
+  {
+    if(!(activeItemBanishes contains it))
+    {
+      boolean success = slap.TryUseItem(it);
+      if(success)
+        return true;
+    }
+  }
+
+  return false;
+}
+
 string GetMacro(int initround, monster foe, string page)
 {
   SLAPState slap;
+  slap.page = page;
+  slap.foe = foe;
 
   slap.AddAction("scrollwhendone");
   slap.AddAction("abort missed 5");
   slap.AddAction("abort hppercentbelow 25");
   slap.AddAction("abort pastround 25");
 
-  slap.HandleUniqueMonsters(foe);
+  slap.HandleUniqueMonsters();
 
   slap.AddAction("pickpocket");
 
@@ -505,9 +583,11 @@ string GetMacro(int initround, monster foe, string page)
   slap.TryStun();
   if(toSniff.HasEntry(foe) && have_effect($effect[On the Trail]) < 1)
     slap.TryCast($skill[Transcendent Olfaction]);
+  if(toBanish.HasEntry(foe))
+    slap.TryBanish();
   slap.TryUseItem(monsterItems[foe]);
   
-  slap.HandleLocation(foe);
+  slap.HandleLocation();
   if(foe.sub_types["ghost"])
   {
     skill [int] getDatGhost;
