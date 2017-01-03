@@ -152,6 +152,7 @@ fullyReusableNonStaggerItems.AddEntries($items[
 
 skill [int] profitableSkills;
 profitableSkills.AddEntries($skills[
+  Open a Big Red Present,
   Pocket Crumbs,
   Extract,
   summon mayfly swarm,
