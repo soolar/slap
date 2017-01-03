@@ -152,7 +152,7 @@ fullyReusableNonStaggerItems.AddEntries($items[
 
 skill [int] profitableSkills;
 profitableSkills.AddEntries($skills[
-  pocket crumbs,
+  Pocket Crumbs,
   Extract,
   summon mayfly swarm,
 ], true);
