@@ -595,6 +595,8 @@ string GetMacro(int initround, monster foe, string page)
     slap.TryCast(getDatGhost);
   }
 
+  if(foe.defense_element != $element[none])
+    slap.AddAction("if hasskill 7282; skill 7282; endif");
   slap.TryCast(profitableSkills);
   slap.TryUseItem(reusableStaggerItems);
   slap.TryCast(staggerSkills);
