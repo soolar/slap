@@ -243,7 +243,7 @@ toBanish.AddEntries($monsters[
 //       they are handled as a special case
 skill [int] stunOptions;
 stunOptions.AddEntries($skills[
-  summon love gnats,
+  Summon Love Gnats,
 ], true);
 
 string [location,string] gremlins;
