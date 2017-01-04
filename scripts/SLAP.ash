@@ -592,8 +592,10 @@ string GetMacro(int initround, monster foe, string page)
   if(foe.sub_types["ghost"])
   {
     skill [int] getDatGhost;
-    getDatGhost.AddEntries($skills[Shoot Ghost, Shoot Ghost, Shoot Ghost, Trap Ghost], true);
-    slap.TryCast(getDatGhost);
+    getDatGhost.AddEntries($skills[Shoot Ghost, Shoot Ghost, Shoot Ghost], true);
+    int fails = slap.TryCast(getDatGhost);
+    if(fails == 0)
+      slap.AddAction("skill 7280"); // Trap Ghost isn't initially available
   }
 
   if(foe.defense_element != $element[none])
