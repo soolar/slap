@@ -220,7 +220,7 @@ banishItems.AddEntries($items[
   Louder Than Bomb,
   tennis ball,
   divine champagne popper,
-  dirty stink bomb,
+  dirty stinkbomb,
   deathchucks,
   smoke grenade,
   crystal skull,
@@ -326,6 +326,11 @@ void Cast(SLAPState slap, skill s)
 
 boolean TryCast(SLAPState slap, skill s)
 {
+  if(s == $skill[none])
+  {
+    vprint("How did $skill[none] get in here?!", "red", 9);
+    return false;
+  }
   //if(have_skill(s) && be_good(s) && (mp_cost(s) <= (my_mp() - slap.mpSpent)))
   string img = s.image.substring(0, s.image.length() - 4); // cut off the .gif
   if(slap.page.contains_text('<option value="' + s.to_int() + '" picurl="' + img + '" >' + s) && (mp_cost(s) <= (my_mp() - slap.mpSpent)))
@@ -577,7 +582,7 @@ string GetMacro(int initround, monster foe, string page)
      && page.contains_text("Looks like you must have hit CTRL+V,")
      && qprop("questL13Final"))
   {
-    vprint("DIGITIZING", 8);
+    vprint("DIGITIZING", "green", 8);
     slap.TryCast($skill[Digitize]);
   }
 
