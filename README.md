@@ -85,7 +85,9 @@ scripts/SLAP.ash` to your CCS.
 Whenever a combat item is used (outside of stasising gremlins), a reusable but
 non-staggering combat item will be chosen to accompany it. If all available
 once-per-battle funkslingables have been used in the battle, it will then pick
-the first available infinite use funkslingable, if available.
+the first available infinite use funkslingable, if available. If a non-staggering
+combat item is going to be used such as abstractions of the big book of pirate
+insults, a staggering item will be chosen to accompany it.
 #### Once-per-battle funkslingables
 * porquoise-handled sixgun
 * HOA citation pad
