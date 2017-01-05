@@ -16,48 +16,41 @@ what enemy you used it on, like limited banishes.
 ## Why use this instead of WHAM?
 WHAM is a wonderful consult script and I highly recommend you check it out if
 you haven't already. It does a lot of things that my consult script does not,
-but SLAP has a couple advantages that should make it appealing to some people:
-batching. All actions for the combat will be decided at once and sent in a
-single BALLS macro. That means there will only be a single server hit per
-combat, assuming you don't run in to an error (I can not promise that it will be
-fully effective against complicated boss monsters for example). That means less
-lag, AND being extra friendly to KoL's servers! Also in the name of server
-friendliness, all script logic is done client-side (where possible). Determining
-which skills you have available, what items you can use, etc, is all done in
-advance to avoid adding conditional execution to the macro. Otherwise I have
-enountered increased lag due to the length and complexity of some of the things
-this script can do, and much more importantly, the limit of 37 commands (in a
-row?!) without performing an action. If you've ever tried to do anything mildly
-fancy with BALLS, you should be intimately familiar with that error... It even
-goes the extra distance and boils down all skill and item references to be by ID
-in the BALLS macro, to remove any possible mixups, any issues with fancy unicode
-characters, and presumably very marginally reduce the processing time used by the
-server.
-
-TL;DR: Whereas WHAM focuses on making your combat as optimal as possible, SLAP
-focuses on making it as quick as possible (in terms of time, not turns), while
-still making use of a wide variety of items and skills.
+and generally focuses on making your combat as optimal as possible, including
+adapting as rounds progress. SLAP, on the other hand, does all of its decision
+making at once, and sends it all in a single command, meaning it will only make
+a single server hit instead of quite a few.Basically, whereas WHAM focuses on
+making your combat as optimal as possible, SLAP focuses on making it as quick
+as possible (in terms of time, not turns), while still making use of a wide
+variety of items and skills.
 
 ## Installation
 Simply run `svn checkout https://github.com/soolar/slap/branches/release/` in
-KoLMafia's gCLI. Then switch your ccs to SLAP.ccs, or add `consult
+KoLMafia's gCLI. Then switch your ccs to slap.ccs, or add `consult
 scripts/SLAP.ash` to your CCS.
 
-## Quest progress this consult script will make
+## Ascension relevant quest progress this consult script will make
 ### Olfaction
-SLAP will olfact the following quest related monsters (eventually, it will even
-do so in avatar paths!):
 * dirty old lihc
 * dairy goat
+* twin peak topiary animals
+* Quiet Healer
 * Blue Oyster cultist
 * racecar bob
 * bob racecar
 * tomb rat
+
+### Banishing
+* slick lihc
+* senile lihc
+* chatty pirate
+* crusty pirate
+* Irritating Series of Random Encounters
  
 ### Monster/area specific items
 * racecar bob and bob racecar will be photographed
 * Pirates will be insulted
-* Zeppeling protesters will be burned with a cigarette lighter
+* Zeppelin protesters will be burned with a cigarette lighter
 * Red zeppelin monsters will be glarked, if possible
 * Gremlins will be stasised and magneted as appropriate
 * Tomb rats will be turned in to rat kings
@@ -66,6 +59,7 @@ do so in avatar paths!):
 ### Underwater zones
 * uses pulled red taffy if available
 * trains sea lasso if available and unmastered
+* use pulled indigo taffy as a banisher if one is needed
 
 ### Barf Mountain
 * sniffs garbage tourist
@@ -73,6 +67,9 @@ do so in avatar paths!):
 
 ### Deep Machine Tunnels
 * mixes abstractions when possible
+
+### Spaaace
+* sniffs map droppers
 
 ## Things this ccs will utilize
 ### Reusable staggering combat items
@@ -103,6 +100,31 @@ the first available infinite use funkslingable, if available.
 * tin snips
 * Miniborg Destroy-O-Bot
 * time shuriken
+
+### Banishers
+Skills will be prefered over items when possible. Avoids using any banisher
+that is still currently in effect.
+#### Skills
+* Unleash Nanites (Nanorhino, only with >40 turns of Nanobrawny)
+* Creepy Grin (V for Vivala mask)
+* Give Your Opponent the Stinkeye (stinky cheese eye)
+* Talk About Politics (Pantsgiving)
+* Snokebomb
+* Banishing Shout (Avatar of Boris)
+* Howl of the Alpha (Zombie Master)
+* Walk Away From Explosion (Avatar of Sneaky Pete)
+* Thunder Clap (Heavy Rains)
+* Curse of Vacation (Actually Ed the UNDYING!!!)
+
+#### Items
+* pulled indigo taffy (Summon Pulled Taffy, underwater only)
+* Louder Than Bomb (Smith's Tome)
+* tennis ball (Hallowiener Dog)
+* divine champagne popper (Summon Divine Favors)
+* dirty stinkbomb (KoL High School)
+* deathchucks (KoL High School)
+* smoke grenade (Avatar of Sneaky Pete)
+* crystal skull (Skeleton Garden)
  
 ### Always used finite combat skills
 * Fire the Jokester's Gun (The Jokester's gun)
@@ -114,15 +136,32 @@ the first available infinite use funkslingable, if available.
 * air dirty laundry (Pantsgiving)
 * Ply Reality (Thor's Pliers)
 * Cowboy Kick (your cowboy boots)
+* Jiggles Chefstaves, if you have one equipped!
 
 ### Other IotM derivative skills
 * summon love gnats (bottle of lovebug pheromones)
 * summon love mosquito (bottle of lovebug pheromones)
 * Extract (source terminal)
 * Compress (source terminal)
+* Open a Big Red Present (crimbo shrub)
+* Digitize (source terminal, SLAP will automatically renew existing digitizations
+  in aftercore)
 
 ## Path specific support
 ### The Source
 Source Agent fights will be automated, if you have the appropriate skills and mp
 at your disposal.
 
+## Other random stuff
+* If a monster is phys immune, spam spells at it instead of attacking repeatedly
+
+## In the works!
+* Proper support for banishes that can apply to multiple monsters simultaneously
+* Support for path specific olfaction
+* Yellow Ray support
+* More olfaction and banish targets
+* Weirdeaux monster combat
+* Digitizing smartly based on adventures spent compared to adventures remaining to
+  to your turngen for the day automatically instead of just using a zlib variable
+* Once I decide exactly how I want to store the data I will probably move things
+  like sniff/banish targets and such out in to zlib variables
