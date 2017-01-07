@@ -350,6 +350,13 @@ int TryCast(SLAPState slap, skill [int] skills)
   return fails;
 }
 
+void RepeatCast(SLAPState slap, skill s)
+{
+  slap.AddAction("while hasskill " + s.to_int());
+  slap.AddAction("skill " + s.to_int());
+  slap.AddAction("endwhile");
+}
+
 item GetFunkslingable(SLAPState slap, item other)
 {
   if(!reusableStaggerItems.HasEntry(other))
@@ -614,7 +621,7 @@ string GetMacro(int initround, monster foe, string page)
   if(ChefstaffEquipped())
     slap.AddAction("jiggle");
   if(foe.physical_resistance == 100)
-    slap.AddAction("while hasskill Saucegeyser;skill Saucegeyser;endwhile");
+    slap.RepeatCast($skill[Saucegeyser]);
   slap.AddAction("attack");
   slap.AddAction("repeat");
   return join(slap.actions, ";");
