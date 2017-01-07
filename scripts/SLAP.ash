@@ -180,6 +180,10 @@ monster [int] toSniff;
 toSniff.AddEntries($monsters[
   dirty old lihc,
   dairy goat,
+  elephant (meatcar?) topiary animal,
+  spider (duck?) topiary animal,
+  bearpig topiary animal,
+  Quiet Healer,
   Blue Oyster cultist,
   racecar bob,
   bob racecar,
@@ -187,6 +191,7 @@ toSniff.AddEntries($monsters[
   garbage tourist,
   nasty bear,
   grizzled survivor, unhinged survivor, whiny survivor,
+  overarmed survivor, primitive survivor, unlikely survivor,
 ], true);
 
 // TODO: Support Peel Out, Beancannon, and other equip-skill banishes
@@ -236,6 +241,13 @@ monster [int] toBanish;
 toBanish.AddEntries($monsters[
   slick lihc,
   senile lihc,
+
+  chatty pirate,
+  crusty pirate,
+
+  Irritating Series of Random Encounters,
+
+  A.M.C. gremlin,
 ], true);
 
 // TODO: add more stun options
