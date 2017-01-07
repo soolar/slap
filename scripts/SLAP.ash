@@ -483,6 +483,35 @@ void HandleUniqueMonsters(SLAPState slap)
   }
 }
 
+boolean TryPickpocket(SLAPState slap)
+{
+  boolean ShouldPickpocket()
+  {
+    foreach i,info in item_drops_array(slap.foe)
+    {
+      switch(info.type)
+      {
+        case "n": case "b":
+          continue;
+        case "0": case "p":
+          return true;
+        default:
+          if(info.rate > 0 && info.rate < 100)
+            return true;
+          break;
+      }
+    }
+    return false;
+  }
+
+  if(ShouldPickpocket())
+  {
+    slap.AddAction("pickpocket");
+    return true;
+  }
+  return false;
+}
+
 boolean TryStun(SLAPState slap)
 {
   boolean stunSuccess;
@@ -582,7 +611,7 @@ string GetMacro(int initround, monster foe, string page)
 
   slap.HandleUniqueMonsters();
 
-  slap.AddAction("pickpocket");
+  slap.TryPickpocket();
 
   if(get_property("_sourceTerminalDigitizeMonsterCount") >= vars["SLAP.Digitize.Frequency"].to_int()
      && page.contains_text("Looks like you must have hit CTRL+V,")
