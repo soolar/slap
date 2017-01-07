@@ -633,6 +633,8 @@ string GetMacro(int initround, monster foe, string page)
 
   slap.TryStun();
   slap.TryFlyer();
+  if(foe == $monster[gaudy pirate])
+    slap.TryCast($skill[Duplicate]);
   if(toSniff.HasEntry(foe) && have_effect($effect[On the Trail]) < 1)
     slap.TryCast($skill[Transcendent Olfaction]);
   if(toBanish.HasEntry(foe))
