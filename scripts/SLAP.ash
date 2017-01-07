@@ -598,6 +598,16 @@ boolean TryBanish(SLAPState slap)
   return false;
 }
 
+void TryFlyer(SLAPState slap)
+{
+  if(qprop("questL12War") || qprop("questL12War == 0") ||
+      get_property("sidequestArenaCompleted") != "none" ||
+      get_property("flyeredML").to_int() > 10000)
+    return;
+  slap.TryUseItem($item[rock band flyers]);
+  slap.TryUseItem($item[jam band flyers]);
+}
+
 string GetMacro(int initround, monster foe, string page)
 {
   SLAPState slap;
@@ -622,6 +632,7 @@ string GetMacro(int initround, monster foe, string page)
   }
 
   slap.TryStun();
+  slap.TryFlyer();
   if(toSniff.HasEntry(foe) && have_effect($effect[On the Trail]) < 1)
     slap.TryCast($skill[Transcendent Olfaction]);
   if(toBanish.HasEntry(foe))
