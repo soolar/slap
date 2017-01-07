@@ -329,9 +329,8 @@ boolean TryCast(SLAPState slap, skill s)
     vprint("How did $skill[none] get in here?!", "red", 9);
     return false;
   }
-  //if(have_skill(s) && be_good(s) && (mp_cost(s) <= (my_mp() - slap.mpSpent)))
-  string img = s.image.substring(0, s.image.length() - 4); // cut off the .gif
-  if(slap.page.contains_text('<option value="' + s.to_int() + '" picurl="' + img + '" >' + s) && (mp_cost(s) <= (my_mp() - slap.mpSpent)))
+  vprint("Trying to cast " + s, "green", 10);
+  if(have_skill(s) && be_good(s) && (mp_cost(s) <= (my_mp() - slap.mpSpent)))
   {
     slap.Cast(s);
     return true;
@@ -604,7 +603,7 @@ string GetMacro(int initround, monster foe, string page)
   }
 
   if(foe.defense_element != $element[none])
-    slap.AddAction("if hasskill 7282; skill 7282; endif");
+    slap.TryCast($skill[Extract Jelly]);
   slap.TryCast(profitableSkills);
   slap.TryUseItem(reusableStaggerItems);
   slap.TryCast(staggerSkills);
