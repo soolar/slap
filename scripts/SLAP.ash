@@ -296,20 +296,6 @@ if(hippy_stone_broken() && qprop("questL13Final"))
 }
 
 // Helper functions
-string Intify(item it)
-{
-  if(vars["verbosity"].to_int() < 6)
-    return it.to_int();
-  return it;
-}
-
-string Intify(skill s)
-{
-  if(vars["verbosity"].to_int() < 6)
-    return s.to_int();
-  return s;
-}
-
 boolean ChefstaffEquipped()
 {
   item mainhand = equipped_item($slot[weapon]);
@@ -333,7 +319,7 @@ void AddAction(SLAPState slap, string action)
 void Cast(SLAPState slap, skill s)
 {
   slap.mpSpent += mp_cost(s);
-  slap.AddAction("skill " + Intify(s));
+  slap.AddAction("skill " + s.to_int());
 }
 
 boolean TryCast(SLAPState slap, skill s)
@@ -395,10 +381,10 @@ boolean TryUseItem(SLAPState slap, item it, item funk)
     return false;
   if(item_amount(it) > 0 && be_good(it))
   {
-    string act = "use " + Intify(it);
+    string act = "use " + it.to_int();
     slap.itemsUsed[it] = true;
     if(funk != $item[none])
-      act += "," + Intify(funk);
+      act += "," + funk.to_int();
     slap.itemsUsed[funk] = true;
     slap.AddAction(act);
     return true;
@@ -532,6 +518,8 @@ void HandleLocation(SLAPState slap)
 
 boolean TryBanish(SLAPState slap)
 {
+  vprint("Attempting to banish", "green", 8);
+
   monster [skill] activeSkillBanishes;
   monster [item] activeItemBanishes;
 
@@ -633,11 +621,25 @@ string GetMacro(int initround, monster foe, string page)
   return join(slap.actions, ";");
 }
 
+string Deintify(string s)
+{
+  foreach sk in $skills[]
+    s = s.replace_string("skill " + sk.to_int() + ";", "skill " + sk + ";");
+  foreach it in $items[]
+  {
+    s = s.replace_string("use " + it.to_int() + ",", "use " + it + ",");
+    s = s.replace_string("use " + it.to_int() + ";", "use " + it + ";");
+    s = s.replace_string("," + it.to_int() + ";", "," + it + ";");
+  }
+
+  return s;
+}
+
 void main(int initround, monster foe, string page)
 {
   string macro = GetMacro(initround, foe, page);
-  vprint("Macro about to be executed: " + macro, "blue", 7);
   visit_url("fight.php?action=macro&macrotext=" + url_encode(macro), true, true);
   vprint("Macro just executed: " + macro, "blue", 6);
+  vprint("Macro deintified: " + Deintify(macro), "blue", 7);
 }
 
