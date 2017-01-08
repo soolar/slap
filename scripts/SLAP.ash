@@ -502,6 +502,8 @@ boolean TryPickpocket(SLAPState slap)
 {
   boolean ShouldPickpocket()
   {
+    if(my_primestat() != $stat[moxie])
+      return false;
     foreach i,info in item_drops_array(slap.foe)
     {
       switch(info.type)
