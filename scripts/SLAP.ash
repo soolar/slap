@@ -659,13 +659,16 @@ string GetMacro(int initround, monster foe, string page)
   slap.TryUseItem(monsterItems[foe]);
   
   slap.HandleLocation();
-  if(foe.sub_types["ghost"])
+  if(foe.sub_types["ghost"] && equipped_amount($item[protonic accelerator pack]) > 0)
   {
-    skill [int] getDatGhost;
-    getDatGhost.AddEntries($skills[Shoot Ghost, Shoot Ghost, Shoot Ghost], true);
-    int fails = slap.TryCast(getDatGhost);
-    if(fails == 0)
-      slap.AddAction("skill 7280"); // Trap Ghost isn't initially available
+    // Gotta just go with BALLS logic for this, mafia isn't totally reliable when it
+    // comes to whether or not shoot ghost is available
+    slap.AddAction("while hasskill 7279"); // shoot ghost
+    slap.AddAction("skill 7279"); // shoot ghost
+    slap.AddAction("if hasskill 7280"); // trap ghost
+    slap.AddAction("skill 7280"); // trap ghost
+    slap.AddAction("endif");
+    slap.AddAction("endwhile");
   }
 
   if(foe.defense_element != $element[none])
