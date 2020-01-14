@@ -1,3 +1,3 @@
 [ default ]
-consult scripts/SLAP.ash
+consult scripts/SLAP/SLAP.ash
 

@@ -1,0 +1,56 @@
+# once per combat funkslingables
+porquoise-handled sixgun	funky;sixgun
+HOA citation pad	funky;phylumstagger:dude:hippy:orc
+Great Wolf's lice	funky;phylumstagger:beast
+Mayor Ghost's scissors	funky;phylumstagger:undead
+electric boning knife	funky
+Blue raspberry troll doll	funky
+Cinnamon troll doll	funky
+Grape troll doll	funky
+
+# infinite use funkslingables
+tin snips	funky;reusable
+Miniborg Destroy-O-Bot	funky;reusable
+time shuriken	funky;reusable
+spectre scepter	funky;reusable
+
+# once per combat staggers
+Time-Spinner	stagger
+Rain-Doh indigo cup	stagger
+Rain-Doh blue balls	stagger
+nasty-smelling moss	stagger
+little red book	stagger
+tomayohawk-style reflex hammer	stagger
+beehive	stagger
+
+# stasis items
+dictionary	stasis
+seal tooth	stasis
+
+# banishers
+cocktail napkin	banisher;turnfree;dur:20;monster:Clingy pirate (male),Clingy pirate (female)
+pulled indigo taffy	banisher;turnfree;dur:20;sea
+Louder Than Bomb	banisher;turnfree;dur:20
+tennis ball	banisher;turnfree;dur:30
+divine champagne popper	banisher;turnfree;dur:5
+Winifred's whistle	banisher;turnfree;dur:?
+crystal skull	banisher;dur:20
+Harold's bell	banisher;dur:20
+classy monkey	banisher;dur:20;path:Class Act
+# only available for KoLHS
+dirty stinkbomb	banisher;dur:rollover;turnfree
+deathchucks	banisher;dur:rollover;turnfree
+# only available for AoSP
+smoke grenade	banisher;dur:20
+
+# free runs
+Mer-kin pinkslip	freerun:100;phylum:Mer-kin
+T.U.R.D.S Key	freerun:100;monsterattribute:GHOST
+short writ of habeas corpus	freerun:100;zone:HiddenCity
+fish-oil smoke bomb	freerun:100
+glob of Blank-Out	freerun:100
+GOTO	freerun:30
+green smoke bomb	freerun:90
+tattered scrap of paper	freerun:50
+wumpus-hair bolo	freerun:50
+
