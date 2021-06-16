@@ -124,7 +124,7 @@ item [int] reusableStaggerItems;
 reusableStaggerItems.AddEntries($items[
 	Time-Spinner,
 	Rain-Doh indigo cup,
-	Rain-Doh blue balls,
+	//Rain-Doh blue balls,
 	nasty-smelling moss,
 	little red book,
 	tomayohawk-style reflex hammer,
@@ -180,6 +180,9 @@ staggerSkills.AddEntries($skills[
 	air dirty laundry,
 	Ply Reality,
 	Cowboy Kick,
+	Disarming Thrust,
+	Barrage of Tears,
+	Detect Weakness,
 ], true);
 
 item [int] stasisItems;
@@ -218,6 +221,8 @@ toSniff.AddEntries($monsters[
 	overarmed survivor, primitive survivor, unlikely survivor,
 
 	peppermint eel,
+
+	knott yeti,
 ], true);
 
 monster [int] toBanish;
@@ -363,6 +368,11 @@ void Cast(SLAPState slap, skill s)
 	slap.AddAction("skill " + s.to_int());
 }
 
+boolean CanCast(SLAPState slap, skill s)
+{
+	return have_skill(s) && be_good(s) && (mp_cost(s) <= (my_mp() - slap.mpSpent));
+}
+
 int tryNum = 0;
 boolean TryCast(SLAPState slap, skill s)
 {
@@ -372,7 +382,7 @@ boolean TryCast(SLAPState slap, skill s)
 		return false;
 	}
 	vprint("[" + (tryNum++) + "] Trying to cast " + s, "green", 10);
-	if(have_skill(s) && be_good(s) && (mp_cost(s) <= (my_mp() - slap.mpSpent)))
+	if(slap.CanCast(s))
 	{
 		slap.Cast(s);
 		return true;
@@ -392,11 +402,40 @@ int TryCast(SLAPState slap, skill [int] skills)
 	return fails;
 }
 
-void RepeatCast(SLAPState slap, skill s)
+int TryCast(SLAPState slap, skill [int] skills, int limit)
 {
+	int successes = 0;
+	foreach i,sk in skills
+	{
+		boolean success = slap.TryCast(sk);
+		if(success)
+		{
+			++successes;
+			if(successes >= limit)
+				break;
+		}
+	}
+	return successes;
+}
+
+boolean RepeatCast(SLAPState slap, skill s)
+{
+	if(!slap.CanCast(s))
+		return false;
 	slap.AddAction("while hasskill " + s.to_int());
 	slap.AddAction("skill " + s.to_int());
 	slap.AddAction("endwhile");
+	return true;
+}
+
+boolean RepeatCastFirst(SLAPState slap, skill [int] skills)
+{
+	foreach i,sk in skills
+	{
+		if(slap.RepeatCast(sk))
+			return true;
+	}
+	return false;
 }
 
 item GetFunkslingable(SLAPState slap, item other)
@@ -505,7 +544,7 @@ void HandleUniqueMonsters(SLAPState slap)
 			slap.AddAction('abort "You\'re hosed."');
 			break;
 		}
-		case $monster[one of Doctor Weirdeaux's creations]:
+		case $monster[one of Doctor Weirdeaux\'s creations]:
 		{
 			matcher headmatch = create_matcher("an_head(\\d+)\\.gif", slap.page);
 			if(!find(headmatch))
@@ -592,7 +631,8 @@ void HandleUniqueMonsters(SLAPState slap)
 		case $monster[gourmet gourami]:
 		case $monster[freshwater bonefish]:
 		{
-			slap.TryUseItem($item[tattered scrap of paper], $item[tattered scrap of paper]);
+			if(!slap.TryUseItem($item[tattered scrap of paper], $item[tattered scrap of paper]))
+				slap.AddAction("runaway");
 			slap.AddAction("repeat");
 			break;
 		}
@@ -631,6 +671,8 @@ boolean TryPickpocket(SLAPState slap)
 	boolean ShouldPickpocket()
 	{
 		if(my_primestat() != $stat[moxie] && equipped_amount($item[tiny black hole]) == 0 && equipped_amount($item[mime army infiltration glove]) == 0)
+			return false;
+		if(my_path_id() == 41)
 			return false;
 		foreach i,info in item_drops_array(slap.foe)
 		{
@@ -674,7 +716,7 @@ void HandleLocation(SLAPState slap)
 {
 	switch(my_location())
 	{
-		case $location[Barrrney's Barrr]:
+		case $location[Barrrney\'s Barrr]:
 			slap.TryUseItem($item[The Big Book of Pirate Insults]);
 			break;
 		case $location[A Mob of Zeppelin Protesters]:
@@ -703,21 +745,25 @@ boolean TryBanish(SLAPState slap)
 	monster [skill] activeSkillBanishes;
 	monster [item] activeItemBanishes;
 
-	string [int] banishData = get_property("banishedMonsters").split_string(":");
-	for(int i = 0; i < banishData.count(); i += 3)
+	string banishedMonsters = get_property("banishedMonsters");
+	if(banishedMonsters != "")
 	{
-		monster banished = to_monster(banishData[i]);
-		string banisher = banishData[i + 1];
-		if(banishNameFixes contains banisher)
-			banisher = banishNameFixes[banisher];
+		string [int] banishData = banishedMonsters.split_string(":");
+		for(int i = 0; i < banishData.count(); i += 3)
+		{
+			monster banished = to_monster(banishData[i]);
+			string banisher = banishData[i + 1];
+			if(banishNameFixes contains banisher)
+				banisher = banishNameFixes[banisher];
 
-		skill sk = banisher.to_skill();
-		if(sk != $skill[none])
-			activeSkillBanishes[sk] = banished;
+			skill sk = banisher.to_skill();
+			if(sk != $skill[none])
+				activeSkillBanishes[sk] = banished;
 
-		item it = banisher.to_item();
-		if(it != $item[none])
-			activeItemBanishes[it] = banished;
+			item it = banisher.to_item();
+			if(it != $item[none])
+				activeItemBanishes[it] = banished;
+		}
 	}
 
 	foreach i,sk in banishSkills
@@ -740,7 +786,7 @@ boolean TryBanish(SLAPState slap)
 		}
 	}
 
-	abort("no banish available");
+	print("no banish available", "red");
 	return false;
 }
 
@@ -787,7 +833,7 @@ string GetMacro(int initround, monster foe, string page)
 	if(toBanish.HasEntry(foe))
 		slap.TryBanish();
 	slap.TryUseItem(monsterItems[foe]);
-	
+
 	slap.HandleLocation();
 	if(foe.sub_types["ghost"] && equipped_amount($item[protonic accelerator pack]) > 0)
 	{
@@ -812,15 +858,27 @@ string GetMacro(int initround, monster foe, string page)
 		slap.TryCast(staggerSkills);
 	}
 
-	slap.TryCast($skill[stuffed mortar shell]);
-	// I know I could just always put that there, but I don't want to see the "you don't have a
-	// chefstaff equipped" message
-	if(ChefstaffEquipped())
-		slap.AddAction("jiggle");
-	if(foe.physical_resistance == 100 || my_class() == $class[Sauceror])
-		slap.RepeatCast($skill[Saucegeyser]);
-	slap.AddAction("attack");
-	slap.AddAction("repeat");
+	switch(my_class())
+	{
+	case $class[Avatar of Jarlsberg]:
+		// TODO
+		break;
+	default:
+		boolean mortared = slap.TryCast($skill[stuffed mortar shell]);
+		// I know I could just always put that there, but I don't want to see the "you don't have a
+		// chefstaff equipped" message
+		if(ChefstaffEquipped())
+			slap.AddAction("jiggle");
+		if(foe.physical_resistance == 100 || my_class() == $class[Sauceror])
+		{
+			if(mortared && !ChefstaffEquipped())
+				slap.TryUseItem(stasisItems, 1);
+			slap.RepeatCast($skill[Saucegeyser]);
+		}
+		slap.AddAction("attack");
+		slap.AddAction("repeat");
+		break;
+	}
 	return join(slap.actions, ";");
 }
 
